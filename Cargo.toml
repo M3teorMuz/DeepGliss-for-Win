@@ -1,0 +1,37 @@
+[package]
+name = "gliss"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "gliss"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+
+[[bin]]
+name = "ui"
+path = "src/bin.rs"
+
+
+[dependencies]
+
+baseview = {git = "https://github.com/RustAudio/baseview", rev = "b3712638bacb3fdf2883cb5aa3f6caed0e91ac8c" }
+egui-baseview = {git = "https://github.com/JoshuaPostel/egui-baseview", rev = "e907e01222e366e5d96f7dadc56a072489ff21be" }
+egui = "0.15"
+emath = "0.15"
+epaint = "0.15"
+
+dirs = "4"
+log = "0.4"
+log-panics = "2"
+raw-window-handle = "0.4.2"
+simplelog = "0.11"
+vst = "0.2.1"
+rtrb = "0.2"
+ordered-float = "2.0"
+lazy_static = "1.4.0"
+rand = "0.8.4"
+anyhow = "1.0"
+
+itertools = "0.10.2"
