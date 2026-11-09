@@ -1,0 +1,70 @@
+name: Build DeepGliss VST2 (Windows x64)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-windows:
+    name: Build Windows x64 VST2
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build plugin
+        run: cargo +nightly build --release
+
+      - name: Package VST2 DLL
+        shell: pwsh
+        run: |
+          $dll = "target/release/gliss.dll"
+          if (!(Test-Path $dll)) {
+            Write-Error "Build did not produce $dll"
+            Get-ChildItem -Recurse target/release | Select-Object FullName
+            exit 1
+          }
+
+          New-Item -ItemType Directory -Force -Path "dist/DeepGliss" | Out-Null
+          Copy-Item $dll "dist/DeepGliss/DeepGliss.dll"
+          Copy-Item "DeepGliss.png" "dist/DeepGliss/DeepGliss.png"
+          Copy-Item "LICENSE" "dist/DeepGliss/LICENSE"
+
+          @"
+          DeepGliss VST2 for Windows x64
+
+          Install:
+          Copy DeepGliss.dll to:
+          C:\Program Files\Common Files\VST2
+
+          Or use any folder configured as a VST2 plugin search path in your DAW.
+          Restart/rescan plugins in FL Studio.
+
+          This is a 64-bit VST2 plugin. Use it with a 64-bit FL Studio installation.
+          "@ | Set-Content "dist/DeepGliss/INSTALL.txt"
+
+          Compress-Archive -Path "dist/DeepGliss/*" -DestinationPath "dist/DeepGliss-Windows-x64-VST2.zip" -Force
+
+      - name: Upload Windows VST2 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepGliss-Windows-x64-VST2
+          path: dist/DeepGliss-Windows-x64-VST2.zip
+          if-no-files-found: error
+          retention-days: 30
